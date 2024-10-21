@@ -28,15 +28,23 @@ def OpenPDF(file_path):
 
         for line in text_complete.splitlines():
             if line.startswith("Inspeção"):
-                Inspeção = line.replace("Inspeção ","")
+                inspecao = line.replace("Inspeção: ","")
                 
-                print(Inspeção)
+                Separe_inspecao(inspecao)
 
-    ...
+                print(inspecao)
 
 def Separe_identificador(Identificador):
     Poste = regex_Poste(Identificador)
     Parque = regex_Parque(Identificador)
+
+    # print(f"{Parque} - {Poste}")
+    ...
+
+def Separe_inspecao(inspecao):
+    Tipo = regex_Tipo(inspecao)
+    print(f"Tipo: {Tipo}")
+
     # print(f"{Parque} - {Poste}")
     ...
 
@@ -63,40 +71,38 @@ def regex_Parque(Identificador):
     
     return texto_formatado
 
+def regex_Tipo(inspecao):
+    tipos_fichas = {
+        "IMP": "Implantação",
+        "FUN": "Fundação",
+        "REP": "Reparo",
+        "ESC": "Escavação",
+    }
+
+    # Cria um padrão de regex para buscar qualquer chave do dicionário
+    pattern = re.compile("|".join(re.escape(key) for key in tipos_fichas.keys()))
+
+    # Procura por uma correspondência na string e substitui pelo valor correspondente
+    match = pattern.search(inspecao)
+
+    if match:
+        return tipos_fichas[match.group()]
+    return inspecao  # Retorna a string original se nenhuma chave for encontrada
+    ...
 
 
 
 
-
-
-# # Abrindo o arquivo PDF
-# with open(caminho_pdf, 'rb') as arquivo:
-#     leitor_pdf = PyPDF2.PdfReader(arquivo)
-#     texto_completo = ""
-
-#     # Extraindo o texto de cada página
-#     for numero_pagina, pagina in enumerate(leitor_pdf.pages):
-#         texto = pagina.extract_text()
-#         texto_completo += f"\n--- Página {numero_pagina + 1} ---\n{texto}"
-
-#     # # Exibir o texto extraído
-#     # print(texto_completo)
-
-#         # Procurando a linha que começa com "Identificador"
-#     for linha in texto_completo.splitlines():
-#         if linha.startswith("Identificador"):
-#             print(linha)
+file_test = "TratarPdf/PDF/FormularioRealizado.pdf"
 
 
 for filename in os.listdir(folder_path):
     if filename.endswith(".pdf"):
         file_path = os.path.join(folder_path,filename)
-        OpenPDF(file_path)
+        
+        if file_path == file_test:
+            print(file_path)
 
 
 
-
-
-
-        # print(file_path)
 
