@@ -3,14 +3,20 @@ import re
 import os
 
 class Ficha:
-    def __init__(self,filepath,parque=None,poste=None,tipo=None):
-        self.parque = parque
-        self.poste = poste
-        self.tipo = tipo
-        self.filepath = self.OpenPDF(filepath)
+    def __init__(self,identificador,inspecao,paginas):
+        self.parque = self.regex_Parque(identificador)
+        self.poste = self.regex_Poste(identificador)
+        self.tipo = self.regex_Tipo(inspecao)
+        self.setor = self.regex_Setor(inspecao)
+        self.paginas = paginas
+        # self.identificador = self._Separe_identificador(identificador)
+        # self.inspecao = self._Separe_inspecao(inspecao)
+        # self.filepath = self.OpenPDF(filepath)
 
     def OpenPDF(self,file_path):
         identificador = ""
+        paginas = dict()
+
         with open(file_path, 'rb') as file:
             pdf = PyPDF2.PdfReader(file)
             text_complete = ""
@@ -18,27 +24,56 @@ class Ficha:
             # Extraindo o texto de cada página
             for numb_pag, page in enumerate(pdf.pages):
                 text = page.extract_text()
-                text_complete += f"\n--- Página {numb_pag + 1} ---\n{text}"
+                if text.count("Identificador") != 0:
+                    paginas[numb_pag]=text
+
+                text_complete += f"\n--- Página {numb_pag + 1} ---\n{text}" # -> Deletar
             
-            for line in text_complete.splitlines():
-                if line.startswith("Identificador"):
-                    identificador = line.replace("Identificador ","")
-                    
-                    self._Separe_identificador(identificador)
+            # print(f"{len(paginas)} keys: {paginas.keys()}")
 
-            for line in text_complete.splitlines():
-                if line.startswith("Inspeção"):
-                    inspecao = line.replace("Inspeção: ","")
+            # num_fichas_no_pdf = text_complete.count("Identificador")
+            
+            # print(f"{paginas[0]}")
+
+            for pagina, text in paginas.items():
+                for line in text.splitlines():
+                    if line.startswith("Identificador"):
+                        identificador = line.replace("Identificador ","")
                     
-                    self._Separe_inspecao(inspecao)
+                        self._Separe_identificador(identificador)
+
+                    if line.startswith("Inspeção"):
+                        inspecao = line.replace("Inspeção: ","")
+                        
+                        self._Separe_inspecao(inspecao)                    
+                    
+                    
+
+                    # print(f"{identificador} | {self.parque} - {self.poste} - {self.tipo}")
+
+            print(f" {len(self._criar_intervalos(paginas))}")
+                
+
+            if len(paginas) == 1:
+                # num_fichas_no_pdf = self._contar_fichas(text_complete) -> Mais lento que o .count
+
+                # print(f"Identificador: {num_fichas_no_pdf}")
+
+                for line in text_complete.splitlines():
+                    if line.startswith("Identificador"):
+                        identificador = line.replace("Identificador ","")
+                        
+                        self._Separe_identificador(identificador)
+
+                for line in text_complete.splitlines():
+                    if line.startswith("Inspeção"):
+                        inspecao = line.replace("Inspeção: ","")
+                        
+                        self._Separe_inspecao(inspecao)
+            else:
+                print(f"O arquivo {file_path} possui mais de uma ficha.")
+
         return file_path
-
-    def _Separe_identificador(self,identificador):
-        self.poste = self.regex_Poste(identificador)
-        self.parque = self.regex_Parque(identificador)
-
-    def _Separe_inspecao(self,inspecao):
-        self.tipo = self.regex_Tipo(inspecao)
 
     def regex_Poste(self,identificador):
         padrao = r"P\.[^ -]+"
@@ -46,9 +81,9 @@ class Ficha:
         return Poste.group(0) if Poste else None
 
     def regex_Parque(self,identificador):
-        # Usar regex para remover tudo a partir de "P. ", incluindo "P." e o restante
-        padrao = r"P\..*"
-        texto_limpo = re.sub(padrao, "", identificador).strip()
+        # Usar regex para remover tudo antes de "SDP" e tudo a partir de "P."
+        padrao = r".*?(SDP.*?)(P\..*)?$"
+        texto_limpo = re.sub(padrao, r"\1", identificador).strip()
         
         # Remover espaços, hífens e zeros
         texto_limpo = re.sub(r"[ -]", "", texto_limpo)
@@ -58,7 +93,7 @@ class Ficha:
         
         # Formatar a parte numérica para ter dois dígitos
         texto_formatado = re.sub(r" (\d+)", lambda match: f" {int(match.group(1)):02}", texto_com_espaco)
-        
+
         return texto_formatado
 
     def regex_Tipo(self,inspecao):
@@ -67,6 +102,7 @@ class Ficha:
             "FUN": "Fundação",
             "REP": "Reparo",
             "ESC": "Escavação",
+            "LAN": "Lançamento",
         }
 
         # Cria um padrão de regex para buscar qualquer chave do dicionário
@@ -80,13 +116,29 @@ class Ficha:
         return None  # Retorna None se nenhuma chave for encontrada
         ...
 
+    def regex_Setor(self,inspecao):
+        setores = {
+            "QUA": "Qualidade",
+            "SMS": "Meio ambiente",
+        }
+
+        # Cria um padrão de regex para buscar qualquer chave do dicionário
+        pattern = re.compile("|".join(re.escape(key) for key in setores.keys()))
+
+        # Procura por uma correspondência na string e substitui pelo valor correspondente
+        match = pattern.search(inspecao)
+
+        if match:
+            return setores[match.group()]
+        return None  # Retorna None se nenhuma chave for encontrada
+        
     def renomear_pdf(self):
         caminho_origem = self.filepath
         caminho_raiz = os.path.dirname(self.filepath) 
 
         folder_path = self.parque + " - " + self.poste.replace("/",".")
         
-        caminho_nova = caminho_raiz+"/Fichas/"+folder_path
+        caminho_nova = f"{caminho_raiz}/Fichas/{self.parque}/{folder_path}"
 
 
         #Cria a pasta do poste
@@ -128,7 +180,6 @@ class Ficha:
         except Exception as e:
             print(f'Erro ao copiar e renomear o arquivo: {e}')
 
-
     def _criar_pasta(self,caminho_nova):
         try:
             # Cria a pasta, se ela não existir
@@ -138,3 +189,17 @@ class Ficha:
         except Exception as e:
             # print(f'Erro ao criar a pasta: {e}')
             ...
+
+    def _criar_intervalos(self,dicionario):
+        # Obter as chaves e ordenar
+        chaves = sorted(dicionario.keys())
+        
+        # Criar a lista de tuplas
+        intervalos = []
+        for i in range(len(chaves)):
+            # O primeiro valor da tupla é a chave atual
+            # O segundo valor da tupla é a próxima chave - 1
+            intervalo = (chaves[i], chaves[i + 1] - 1)
+            intervalos.append(intervalo)
+        
+        return tuple(intervalos)

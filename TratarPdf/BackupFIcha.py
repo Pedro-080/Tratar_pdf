@@ -1,5 +1,6 @@
 import PyPDF2
 import re
+import os
 
 class Ficha:
     def __init__(self,filepath,parque=None,poste=None,tipo=None):
@@ -12,7 +13,6 @@ class Ficha:
         identificador = ""
         with open(file_path, 'rb') as file:
             pdf = PyPDF2.PdfReader(file)
-            print(f"Type: {type(pdf)}")
             text_complete = ""
 
             # Extraindo o texto de cada página
@@ -20,8 +20,6 @@ class Ficha:
                 text = page.extract_text()
                 text_complete += f"\n--- Página {numb_pag + 1} ---\n{text}"
             
-            # print(text_complete)
-
             for line in text_complete.splitlines():
                 if line.startswith("Identificador"):
                     identificador = line.replace("Identificador ","")
@@ -82,5 +80,61 @@ class Ficha:
         return None  # Retorna None se nenhuma chave for encontrada
         ...
 
-    def renomear_pdf(self,new_file):
-        ...
+    def renomear_pdf(self):
+        caminho_origem = self.filepath
+        caminho_raiz = os.path.dirname(self.filepath) 
+
+        folder_path = self.parque + " - " + self.poste.replace("/",".")
+        
+        caminho_nova = f"{caminho_raiz}/Fichas/{self.parque}/{folder_path}"
+
+
+        #Cria a pasta do poste
+        self._criar_pasta(caminho_nova)
+
+
+        novo_nome = caminho_nova +"/"+folder_path+" - " + self.tipo +".pdf"
+        # print(f"novo_nome: {novo_nome}")
+
+    
+
+
+
+        # Verifica se o arquivo já existe
+        if os.path.exists(novo_nome):
+            print(f'O arquivo {novo_nome} já existe. Nenhuma ação foi realizada.')
+            return
+
+
+
+        try:
+            # Abre o arquivo PDF original para leitura
+            with open(caminho_origem, 'rb') as arquivo_origem:
+                # Cria um objeto PDF Reader para ler o conteúdo do arquivo
+                leitor_pdf = PyPDF2.PdfReader(arquivo_origem)
+                
+                # Cria um objeto PDF Writer para escrever o novo arquivo
+                escritor_pdf = PyPDF2.PdfWriter()
+
+                # Adiciona cada página do PDF original ao novo arquivo
+                for pagina in leitor_pdf.pages:
+                    escritor_pdf.add_page(pagina)
+                
+                # Grava o novo arquivo com o nome especificado
+                with open(novo_nome, 'wb') as novo_arquivo:
+                    escritor_pdf.write(novo_arquivo)
+            
+            print(f'Arquivo copiado e renomeado para {novo_nome} com sucesso.')
+        except Exception as e:
+            print(f'Erro ao copiar e renomear o arquivo: {e}')
+
+
+    def _criar_pasta(self,caminho_nova):
+        try:
+            # Cria a pasta, se ela não existir
+            os.makedirs(caminho_nova, exist_ok=True)
+            # print(f'A pasta "{caminho_nova}" foi criada ou já existia.')
+            ...
+        except Exception as e:
+            # print(f'Erro ao criar a pasta: {e}')
+            ...
