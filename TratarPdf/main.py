@@ -1,10 +1,12 @@
-from Ficha import Ficha
+# from Ficha import Ficha
 from Relatorio import Relatorio
 import os 
 import timeit
 
 import tkinter as tk
 from tkinter import filedialog, messagebox
+import pandas as pd
+
 
 # Código cuja execução deseja medir
 def meu_codigo():
@@ -24,13 +26,42 @@ def selecionar_destino():
     return destino
      
 
+def Criar_Excel(dataframes, save_path):
+    nome_arquivo = save_path + '/Tabela_resumo.xlsx'
+
+    df = pd.concat(dataframes, ignore_index=True)
+
+    # print(df)
+
+
+    # Exportando para um arquivo Excel
+    df.to_excel(nome_arquivo, index=False)
+
+
+    # print(df)aminho_arquivo)
+
+    # print(f"Aqui: {}")
+
+#     ...
+
+
+dataframes = []
+
 if __name__ == "__main__":
     lista_relatorios = selecionar_fonte()
     arquivo_destino = selecionar_destino()
 
     for arquivo in lista_relatorios:
         relatorio = Relatorio(arquivo)
-        relatorio.Salvar_Relatorio(arquivo_destino)
+        dataframes.append(relatorio.Salvar_Relatorio(arquivo_destino))
+        
+        
+        # Criar_excel(relatorio.lista_de_fichas,arquivo_destino,arquivo)
+
+    Criar_Excel(dataframes, arquivo_destino)
+
+    # for df in dataframes:
+    #     print(df)
 
 
 

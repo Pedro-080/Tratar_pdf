@@ -1,6 +1,8 @@
 from Ficha import Ficha
 import PyPDF2
 import os
+import pandas as pd
+
 
 class Relatorio:
     def __init__(self, caminho_pdf):
@@ -65,12 +67,14 @@ class Relatorio:
         lista_de_fichas_filtrada = [ficha for ficha in lista_de_fichas if ficha.setor == "Qualidade"]
 
         #Extrai as fichas 
-        lista_de_fichas = self.Extrair_fichas(lista_de_fichas_filtrada)
+        lista_de_fichas_filtrada = self.Extrair_fichas(lista_de_fichas_filtrada)
 
         for ficha in lista_de_fichas_filtrada:
-            print(ficha)
+           
             self.Salvar_arquivo(ficha,save_path)
-        
+
+        return self.Criar_dataframe(lista_de_fichas_filtrada)
+
     def Extrair_fichas(self,lista_de_fichas):
         with open(self.caminho_pdf, 'rb') as file:
             leitor_pdf = PyPDF2.PdfReader(file)
@@ -112,3 +116,12 @@ class Relatorio:
         except Exception as e:
             # print(f'Erro ao criar a pasta: {e}')
             ...
+
+    def Criar_dataframe(self, lista_de_fichas):
+        dados = [{'Parque': ficha.parque, 'Poste': ficha.poste, 'Tipo': ficha.tipo,'Setor': ficha.setor} for ficha in lista_de_fichas]
+        df = pd.DataFrame(dados)
+
+        nome_pdf = os.path.basename(self.caminho_pdf)
+        df.insert(0, 'Arquivo', nome_pdf)
+
+        return df
