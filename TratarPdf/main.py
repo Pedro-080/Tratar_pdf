@@ -1,23 +1,40 @@
-import pytesseract
-from PIL import Image
+from Ficha import Ficha
+from Relatorio import Relatorio
+import os 
+import timeit
 
-# Configurar o caminho para o executável do Tesseract (ajuste conforme o seu sistema)
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Windows
-# Em sistemas Unix (Linux/Mac), normalmente o tesseract está no PATH, então isso pode ser omitido
+import tkinter as tk
+from tkinter import filedialog, messagebox
 
-# Carregar a imagem de teste
-imagem = Image.new('RGB', (200, 100), color = (255, 255, 255))
-# Adicionar texto à imagem
-from PIL import ImageDraw, ImageFont
-draw = ImageDraw.Draw(imagem)
-draw.text((10, 40), "Hello, World!", fill=(0, 0, 0))
+# Código cuja execução deseja medir
+def meu_codigo():
+    for i in range(1000000):
+        pass  # Substitua pelo seu código
 
-imagem.show()
-# Salvar a imagem temporariamente
-imagem.save("hello_world_test.png")
+def selecionar_fonte():
+    root = tk.Tk()
+    root.withdraw()  # Oculta a janela principal
+    arquivos_origem = filedialog.askopenfilenames(title="Selecione os arquivos para copiar")
+    return arquivos_origem
 
-# Ler a imagem com o pytesseract
-texto_extraido = pytesseract.image_to_string(imagem)
+def selecionar_destino():
+    root = tk.Tk()
+    root.withdraw()  # Oculta a janela principal
+    destino = filedialog.askdirectory(title="Selecione o diretório de destino")
+    return destino
+     
 
-# Exibir o resultado
-print("Texto extraído:", texto_extraido)
+if __name__ == "__main__":
+    lista_relatorios = selecionar_fonte()
+    arquivo_destino = selecionar_destino()
+
+    for arquivo in lista_relatorios:
+        relatorio = Relatorio(arquivo)
+        relatorio.Salvar_Relatorio(arquivo_destino)
+
+
+
+
+# Medindo o tempo total de execução
+tempo_total = timeit.timeit(meu_codigo, number=1)
+print(f"Tempo total de execução: {tempo_total:.4f} segundos")

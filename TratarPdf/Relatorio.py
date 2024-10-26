@@ -39,10 +39,6 @@ class Relatorio:
                 lista_de_fichas.append(ficha)
             
         return lista_de_fichas
-    
-    # # Função de teste
-    # def Get_fichas(self):
-    #     print(f"Fichas: {self.fichas}")
 
     def _criar_intervalos(self,dicionario):
         # Obter as chaves e ordenar
@@ -62,11 +58,6 @@ class Relatorio:
         
         return intervalos
 
-    def test(self):
-    # for ficha in self.lista_de_fichas:
-        print(f"aquiiiii:{self.caminho_pdf}")
-
-
     def Salvar_Relatorio(self,save_path):
         #Define uma variavel local como copia do atributo de classe
         lista_de_fichas = self.lista_de_fichas
@@ -80,11 +71,7 @@ class Relatorio:
             print(ficha)
             self.Salvar_arquivo(ficha,save_path)
         
-        ...
-        
-
     def Extrair_fichas(self,lista_de_fichas):
-
         with open(self.caminho_pdf, 'rb') as file:
             leitor_pdf = PyPDF2.PdfReader(file)
 
@@ -100,28 +87,17 @@ class Relatorio:
 
                         escritor_pdf.add_page(leitor_pdf.pages[i])
                         fixa.Add_pagina(escritor_pdf)
-
-                    # self.Salvar_fichas(fixa,file_path)
-
         return lista_de_fichas
 
 
 
-    def Salvar_arquivo(self,ficha,save_path):
-
-        # caminho_raiz = os.path.dirname(file_path)
-        
+    def Salvar_arquivo(self,ficha,save_path):      
         nova_pasta = ficha.parque + " - " + ficha.poste.replace("/",".")
-        
         caminho_nova = f"{save_path}/Fichas/{ficha.parque}/{nova_pasta}"
 
         self._criar_pasta(caminho_nova)
 
         novo_arquivo = caminho_nova +"/"+nova_pasta+" - " + ficha.tipo +".pdf"
-
-        # print(f"{ficha.parque} - {ficha.poste} - {ficha.tipo} - {ficha.paginas} - {ficha.setor} | {novo_arquivo}")
-        # print(f"novo nome: {novo_nome}")
-        # novo_nome = 
 
         with open(novo_arquivo, 'wb') as new_file:
             ficha.PDF.write(new_file)
@@ -136,23 +112,3 @@ class Relatorio:
         except Exception as e:
             # print(f'Erro ao criar a pasta: {e}')
             ...
-
-
-#   def salvar_arquivo(self,ficha,file_path):
-
-#         caminho_raiz = os.path.dirname(file_path)
-        
-#         nova_pasta = ficha.parque + " - " + ficha.poste.replace("/",".")
-        
-#         caminho_nova = f"{caminho_raiz}/Fichas/{ficha.parque}/{nova_pasta}"
-
-#         self._criar_pasta(caminho_nova)
-
-#         novo_arquivo = caminho_nova +"/"+nova_pasta+" - " + ficha.tipo +".pdf"
-
-#         print(f"{ficha.parque} - {ficha.poste} - {ficha.tipo} - {ficha.paginas} - {ficha.setor} | {novo_arquivo}")
-#         # print(f"novo nome: {novo_nome}")
-#         # novo_nome = 
-
-#         with open(novo_arquivo, 'wb') as new_file:
-#             ficha.PDF.write(new_file)
